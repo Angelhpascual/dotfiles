@@ -1,0 +1,69 @@
+#!/usr/bin/env bash
+
+set -uo pipefail
+
+source "$DOTLY_PATH/scripts/core/_main.sh"
+source "$DOTLY_PATH/scripts/package/src/package_managers/brew.sh"
+source "$DOTLY_PATH/scripts/package/src/package_managers/cargo.sh"
+source "$DOTLY_PATH/scripts/package/src/package_managers/composer.sh"
+source "$DOTLY_PATH/scripts/package/src/package_managers/gem.sh"
+source "$DOTLY_PATH/scripts/package/src/package_managers/mas.sh"
+source "$DOTLY_PATH/scripts/package/src/package_managers/npm.sh"
+source "$DOTLY_PATH/scripts/package/src/package_managers/pip.sh"
+
+##? Update all packages and perform maintenance tasks
+##?
+##? Usage:
+##?   update_all
+docs::parse "$@"
+
+output::h1_without_margin "♻️  Updating and maintaining your system"
+
+output::write "If you want to debug what's happening behind the scenes, you can execute \`dot self debug\` in parallel."
+
+# Update various package managers
+platform::command_exists mas && output::h2 '🍎 App Store' && mas::update_all
+platform::command_exists brew && output::h2 '🍺 Brew' && brew::update_all
+platform::command_exists pip3 && output::h2 '🐍 pip' && pip::update_all
+platform::command_exists composer && output::h2 '🐘 Composer' && composer::update_all
+platform::command_exists gem && ! gem::is_macos_default && output::h2 '♦️  gem' && gem::update_all
+platform::command_exists npm && output::h2 '🌈 npm' && npm::update_all
+platform::command_exists cargo && output::h2 '📦 cargo' && cargo::update_all
+
+# Update tldr database
+platform::command_exists tldr && output::h2 '📜 tldr database' && tldr --update >/dev/null 2>&1 && output::answer "Database updated"
+
+# Zim Framework updates
+output::h2 "👽 Zim Framework" && zsh "$ZIM_HOME/zimfw.zsh" upgrade 2>&1 | log::file "Upgrading Zim" && zsh "$ZIM_HOME/zimfw.zsh" update 2>&1 | log::file "Updating Zim" && output::answer "Done"
+
+# Dotly update
+output::h2 "🌚 dotly" && dot self update >/dev/null 2>&1 && output::answer "Done"
+
+# Clean up system caches
+output::h2 "🧹 Cleaning system caches"
+rm -rf ~/Library/Caches/* >/dev/null 2>&1 && output::answer "Caches cleared"
+
+# Delete old system logs
+output::h2 "🗑️ Deleting old logs"
+find /var/log -type f -name "*.log" -delete >/dev/null 2>&1 && output::answer "Old logs deleted"
+
+# Reclaim disk space by removing unnecessary files
+output::h2 "💽 Reclaiming disk space"
+platform::command_exists brew && brew cleanup >/dev/null 2>&1 && output::answer "Brew cleanup done"
+platform::command_exists npm && npm cache clean --force >/dev/null 2>&1 && output::answer "NPM cache cleaned"
+
+# Update MacOS system software (optional)
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    output::h2 "🍏 macOS Software Update"
+    softwareupdate -i -a >/dev/null 2>&1 && output::answer "macOS system updated"
+fi
+
+# Check for any orphaned or outdated packages (for Linux systems)
+if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+    output::h2 "🐧 Checking for orphaned packages"
+    sudo apt autoremove -y >/dev/null 2>&1 && output::answer "Orphaned packages removed"
+    sudo apt clean >/dev/null 2>&1 && output::answer "APT cache cleaned"
+fi
+
+output::empty_line
+output::write '👌 All updates and maintenance tasks completed successfully!'
