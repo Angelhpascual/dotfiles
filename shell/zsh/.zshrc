@@ -33,10 +33,20 @@ SPACESHIP_PROMPT_ORDER=(
   exit_code     # Exit code indicator
 )
 
+
+
 source "$DOTLY_PATH/shell/zsh/bindings/dot.zsh"
 source "$DOTLY_PATH/shell/zsh/bindings/reverse_search.zsh"
 source "$DOTFILES_PATH/shell/zsh/key-bindings.zsh"
 
 
 
-export PATH=$PATH:/Applications/Cursor.app/Contents/MacOS
+
+
+
+
+# Added by Antigravity
+export PATH="/Users/angelhpascual/.antigravity/antigravity/bin:$PATH"
+
+# Added by Antigravity
+export PATH="/Users/angelhpascual/.antigravity/antigravity/bin:$PATH"
