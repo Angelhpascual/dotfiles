@@ -1,0 +1,6 @@
+# Módulos externos (dotly es un submodule)
+modules/
+# Archivos de symlinks del sistema anterior (reemplazado por chezmoi)
+symlinks/
+# macOS
+.DS_Store
